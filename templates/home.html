@@ -4,6 +4,18 @@
 {% block js %}
 {% endblock %}
 
-
 {% block main %}
+<h4>Folders</h4>
+<ul>
+  {% for d in dirs %}
+    <li><a href='/{{ d }}'>{{ d }}<a></li>
+  {% endfor %}
+</ul>
+
+<h4>Files</h4>
+<ul>
+  {% for f in files %}
+    <li><a href='/{{ f }}'>{{ f }}<a></li>
+  {% endfor %}
+</ul>
 {% endblock %}

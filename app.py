@@ -7,39 +7,48 @@ This file creates your application.
 """
 
 import os
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, send_file
 
 app = Flask(__name__)
-
-app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'this_should_be_configured')
-
 
 ###
 # Routing for your application.
 ###
 
+def get_content(sub_path=''):
+    base_path = os.path.expanduser('~/101web/data/')
+    if sub_path:
+        path = os.path.join(base_path, sub_path)
+    else:
+        path = base_path
+
+    if os.path.isfile(path):
+        return [path, None]
+
+    folder_content = os.listdir(path)
+    folder_content = map(lambda f: os.path.join(path, f), folder_content)
+    files = filter(lambda f: os.path.isfile(f), folder_content)
+    dirs = filter(lambda f: not os.path.isfile(f), folder_content)
+
+    files = map(lambda f: f.replace(base_path, ''), files)
+    dirs = map(lambda f: f.replace(base_path, ''), dirs)
+
+    return [files, dirs]
+
 @app.route('/')
 def home():
-    """Render website's home page."""
-    return render_template('home.html')
-
-
-@app.route('/about/')
-def about():
-    """Render the website's about page."""
-    return render_template('about.html')
-
-
-###
-# The functions below should be applicable to all Flask apps.
-###
-
-@app.route('/<file_name>.txt')
-def send_text_file(file_name):
     """Send your static text file."""
-    file_dot_text = file_name + '.txt'
-    return app.send_static_file(file_dot_text)
 
+    files, dirs = get_content()
+    return render_template('home.html', files=files, dirs=dirs)
+
+@app.route('/<path:name>')
+def resource(name):
+    files, dirs = get_content(name)
+    if dirs is not None:
+        return render_template('home.html', files=files, dirs=dirs)
+    else:
+        return send_file(files)
 
 @app.after_request
 def add_header(response):
